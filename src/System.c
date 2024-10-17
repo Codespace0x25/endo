@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "./include/System.h"
+#include "./include/Display.h"
 
 unsigned char INP(Port port){
   unsigned char resolt;
@@ -19,9 +20,17 @@ void memcopy(char *sorce, char *dest, int nbytes) {
         *(dest + i) = *(sorce + i); // Use i instead of 1
     }
 }
+// this is the for interups
+
 
 #define KBD_DATA_PORT 0x60
 #define IDT_SIZE 256
+#define PIC1		0x20		/* IO base address for master PIC */
+#define PIC2		0xA0		/* IO base address for slave PIC */
+#define PIC1_COMMAND	PIC1
+#define PIC1_DATA	(PIC1+1)
+#define PIC2_COMMAND	PIC2
+#define PIC2_DATA	(PIC2+1)
 void initKeyboardInterupt();
 
 struct idtEntry {
@@ -53,13 +62,42 @@ extern void KeyboardInterruptHandler();
 extern void loadIdt(struct idtPtr* idtptr);
 
 void initIdt(){
+  printf("IDT set up...\n");
   idt_reg.limit = (sizeof(struct idtEntry)*IDT_SIZE) -1;
+  printf("Keyboard set up...\n");
   idt_reg.base = (uint32_t)&idt;
   setIdtGate(0x21, (uint32_t)KeyboardInterruptHandler);
   loadIdt(&idt_reg);
 }
- 
+ void IRQ_set_mask(uint8_t IRQline) {
+    uint16_t port;
+    uint8_t value;
+
+    if(IRQline < 8) {
+        port = PIC1_DATA;
+    } else {
+        port = PIC2_DATA;
+        IRQline -= 8;
+    }
+    value = INP(port) | (1 << IRQline);
+    OUTP(port, value);        
+}
+
+void IRQ_clear_mask(uint8_t IRQline) {
+    uint16_t port;
+    uint8_t value;
+
+    if(IRQline < 8) {
+        port = PIC1_DATA;
+    } else {
+        port = PIC2_DATA;
+        IRQline -= 8;
+    }
+    value = INP(port) & ~(1 << IRQline);
+    OUTP(port, value);        
+}
 void pic_remap(){
+  printf("remapinmg the pic...\n");
   OUTP(0x20, 0x11);
   OUTP(0xA0, 0x11);
 
@@ -74,6 +112,9 @@ void pic_remap(){
 
   OUTP(0x21, 0x0);
   OUTP(0xA1, 0x0);
+  printf("masking 0x20..\n");
+  IRQ_set_mask(0x20);
+  printf("masked 0x20\n");
 }
 
 
@@ -81,6 +122,7 @@ void pic_remap(){
 static volatile unsigned char LatestScanCode;
 
 void keyboardHandler(){
+  printf("keyPress haped\n");
   unsigned char  scan = INP(KBD_DATA_PORT);
   LatestScanCode = scan;
 }

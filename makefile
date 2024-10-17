@@ -43,6 +43,6 @@ clean:
 	rm -rf $(BUILD_DIR)/* $(OUTPUT)
 
 run:$(OUTPUT)
-	qemu-system-i386 -kernel $(OUTPUT)
+	qemu-system-i386 -kernel $(OUTPUT) -d int -no-reboot -no-shutdown
 .PHONY: all clean
 
