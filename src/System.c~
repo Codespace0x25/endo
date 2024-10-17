@@ -98,7 +98,7 @@ void IRQ_clear_mask(uint8_t IRQline) {
 }
 void pic_remap(){
   printf("masking 0x20..\n");
-  IRQ_set_mask(0);
+  IRQ_set_mask(0x20);
   printf("masked 0x20\n");
   printf("remapinmg the pic...\n");
   OUTP(0x20, 0x11);
