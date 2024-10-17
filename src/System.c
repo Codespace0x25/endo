@@ -81,7 +81,6 @@ void pic_remap(){
 static volatile unsigned char LatestScanCode;
 
 void keyboardHandler(){
-
   unsigned char  scan = INP(KBD_DATA_PORT);
   LatestScanCode = scan;
 }
