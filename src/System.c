@@ -13,11 +13,11 @@ void OUTP(Port port, unsigned char data){
   __asm__("out %%al, %%dx" : : "a" (data) , "d" (port));
 }
 
-void memcopy(char *sorce, char *dest, int nbytes){
-  int i;
-  for (i = 0; i < nbytes; i++){
-    *(dest+i)=*(sorce +1);
-  }
+void memcopy(char *sorce, char *dest, int nbytes) {
+    int i;
+    for (i = 0; i < nbytes; i++) {
+        *(dest + i) = *(sorce + i); // Use i instead of 1
+    }
 }
 
 #define KBD_DATA_PORT 0x60

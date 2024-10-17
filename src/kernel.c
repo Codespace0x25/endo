@@ -5,22 +5,23 @@
 #include "./include/Keybard.h"
 
 void kernel_main() {
-    __asm__ __volatile__ ("cli");
+  initTTY(0x0f);
+//    __asm__ __volatile__ ("cli");
     clearScreen();
     printf("Kernel loading...\n");
-    
+/*  uncoment this out when fixed   
     pic_remap();
     initIdt();
-    
-    __asm__ __volatile__ ("sti");
+*/   
+/*    __asm__ __volatile__ ("sti");
     printf("Keyboard set up...\n");
     printf("IDT set up...\n");
-    
-    
+*/    
     printf("Kernel started\n");
-    
-    unsigned char code;
+    setDColor(0x04);
+    printf((char *)Hart);
+    setDColor(0x0f); 
     while (1) {
-      __asm__ __volatile__("hlt");
+    // kernle loop
     }
 }

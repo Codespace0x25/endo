@@ -13,6 +13,7 @@
 #define MAX_COLS 80
 #define VIDEO_ADDRESS 0xb8000
 
+ unsigned char DColor;
 
 void setCursor(int offset){
   offset /= 2;
@@ -82,4 +83,11 @@ void printf(char *string){
   }
   setCursor(offset);
 }
+void initTTY(unsigned char color){
+  DColor = color;
+  clearScreen();
+}
 
+void setDColor(unsigned char color){
+  DColor = color;
+}
