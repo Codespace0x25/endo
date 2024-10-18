@@ -32,7 +32,7 @@ void memcopy(char *sorce, char *dest, int nbytes) {
 #define PIC2_COMMAND	PIC2
 #define PIC2_DATA	(PIC2+1)
 void initKeyboardInterupt();
-
+void pic_remap();
 struct idtEntry {
   uint16_t offsetLow;
   uint16_t selector;
@@ -50,26 +50,27 @@ struct idtEntry idt[IDT_SIZE];
 struct idtPtr idt_reg;
 
 
-void setIdtGate(int n, uint32_t handler){
-  idt[n].offsetLow = handler & 0xffff;
+void setIdtGate(int n, void* handler){
+  idt[n].offsetLow = ((uint32_t)handler) & 0xffff;
   idt[n].selector = 0x08;
   idt[n].zero = 0;
   idt[n].typeAttr = 0x8E;
-  idt[n].offsetHigh = (handler >> 16) & 0xffff;
+  idt[n].offsetHigh = ((uint32_t)handler >> 16) & 0xffff;
 }
 
 extern void KeyboardInterruptHandler();
 extern void loadIdt(struct idtPtr* idtptr);
 
 void initIdt(){
+  pic_remap();
   printf("IDT set up...\n");
   idt_reg.limit = (sizeof(struct idtEntry)*IDT_SIZE) -1;
-  printf("Keyboard set up...\n");
   idt_reg.base = (uint32_t)&idt;
-  setIdtGate(0x21, (uint32_t)KeyboardInterruptHandler);
+  printf("Keyboard set up...\n");
+  setIdtGate(0x21, KeyboardInterruptHandler);
   loadIdt(&idt_reg);
 }
- void IRQ_set_mask(uint8_t IRQline) {
+void IRQ_set_mask(uint8_t IRQline) {
     uint16_t port;
     uint8_t value;
 
@@ -97,10 +98,6 @@ void IRQ_clear_mask(uint8_t IRQline) {
     OUTP(port, value);        
 }
 void pic_remap(){
-  printf("masking 0x20..\n");
-  IRQ_set_mask(0);
-  printf("masked 0x20\n");
-  printf("remapinmg the pic...\n");
   OUTP(0x20, 0x11);
   OUTP(0xA0, 0x11);
 
@@ -115,6 +112,11 @@ void pic_remap(){
 
   OUTP(0x21, 0x0);
   OUTP(0xA1, 0x0);
+  printf("masking 0x20..\n");
+  IRQ_clear_mask(0);
+  IRQ_set_mask(0);
+  printf("masked 0x20\n");
+  printf("remapinmg the pic...\n");
 }
 
 
