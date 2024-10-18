@@ -1,21 +1,19 @@
 ; Declare constants for the multiboot header.
-MBALIGN  equ  1 << 0            ; align loaded modules on page boundaries
-MEMINFO  equ  1 << 1            ; provide memory map
-MBFLAGS  equ  MBALIGN | MEMINFO ; this is the Multiboot 'flag' field
-MAGIC    equ  0x1BADB002        ; 'magic number' lets bootloader find the header
-CHECKSUM equ -(MAGIC + MBFLAGS)   ; checksum of above, to prove we are multiboot
+MBALIGN  equ  1 << 2            ; Align loaded modules on page boundaries
+MEMINFO  equ  1 << 4            ; Provide memory map
+VBEINFO  equ  1 << 5            ; Request VESA BIOS Extensions information
 
-; Declare a multiboot header that marks the program as a kernel. These are magic
-; values that are documented in the multiboot standard. The bootloader will
-; search for this signature in the first 8 KiB of the kernel file, aligned at a
-; 32-bit boundary. The signature is in its own section so the header can be
-; forced to be within the first 8 KiB of the kernel file.
+; Combine flags
+MBFLAGS  equ  MBALIGN | MEMINFO | VBEINFO ; This is the Multiboot 'flag' field
+MAGIC    equ  0x1BADB002        ; 'Magic number' lets bootloader find the header
+CHECKSUM equ -(MAGIC + MBFLAGS) ; Checksum of above to prove we are multiboot
+
+; Multiboot header section
 section .multiboot
 align 4
-	dd MAGIC
-	dd MBFLAGS
-	dd CHECKSUM
-
+    dd MAGIC                ; Magic number
+    dd MBFLAGS              ; Flags
+    dd CHECKSUM             ; Checksum
 ; The multiboot standard does not define the value of the stack pointer register
 ; (esp) and it is up to the kernel to provide a stack. This allocates room for a
 ; small stack by creating a symbol at the bottom of it, then allocating 16384
@@ -71,6 +69,7 @@ _start:
 	; stack since (pushed 0 bytes so far) and the alignment is thus
 	; preserved and the call is well defined.
         ; note, that if you are building on Windows, C functions may have "_" prefix in assembly: _kernel_main
+  
 	extern kernel_main
 	call kernel_main
 
